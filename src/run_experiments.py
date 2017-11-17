@@ -127,31 +127,49 @@ def go_shapes(denoising, architecture, reduced=False):
         constants.increase_index()
     return flag
 
-def go_mnist(architecture, index=None):
-    mnist = input_data.read_data_sets('../../MNIST_data', one_hot=True)
+def go_mnist(architecture, run_index=None):
+    mnist = input_data.read_data_sets(os.path.join(os.path.expanduser('~'), 'MNIST_data'),
+        one_hot=True)
 
     logger.info('Start fetching.')
-    train, _, validation = mnist.train.images, mnist.test.images, mnist.validation.images
+    train_all, _, validation = mnist.train.images, mnist.test.images, mnist.validation.images
+    class_indices = [[] for _ in range(10)]
+    class_counts = [0] * 10
+    for index, label in enumerate(mnist.train.labels):
+        digit = np.argmax(label)
+        class_indices[digit].append(index)
+        class_counts[digit] += 1
     logger.info('Fetching completed.')
 
-    flag = True
-    beta = 0.0 if index > 3 else 1.5
-    while beta - 4.0 < 1e-3:
-        seq_index = str(constants.run_index() if index is None else index)+'-'+str(beta)+'-mnist'
-        if architecture == constants.CONV:
-            seq_index += '-conv'
+    for labels_percentage in range(20, 101, 20):
+        training_set_indices = []
+        for digit in range(10):
+            training_set_indices += random.sample(class_indices[digit],
+                (class_counts[digit] * labels_percentage) / 100)
+        train = train_all[training_set_indices]
+        util.write_list_to_file(training_set_indices,
+            os.path.join(util.get_logs_dir(),
+                str(run_index) + '-' + str(labels_percentage) + '-training-indices.txt'))
+        flag = True
+        beta = 0.0
+        while beta - 4.0 < 1e-3:
+            seq_index = str(constants.run_index() if run_index is None else run_index) + \
+                '-' + str(labels_percentage) + '-' + str(beta) + '-mnist'
+            if architecture == constants.CONV:
+                seq_index += '-conv'
 
-        logger.info('Start building the variational autoencoder architecture.')
-        logger.info('Beta = {0}, Seq index = {1}'.format(beta, seq_index))
+            logger.info('Start building the variational autoencoder architecture.')
+            logger.info('Beta = {0}, Seq index = {1}'.format(beta, seq_index))
 
-        autoencoder = get_autoencoder.mnist(architecture, beta, True, seq_index=seq_index)
-        is_training_successful = train_and_log_autoencoder(autoencoder, train, validation)
-        if not is_training_successful:
-            flag = False
-            break
-        beta += 0.1
-    if flag and index is None:
-        constants.increase_index()
+            autoencoder = get_autoencoder.mnist(architecture, beta, True, seq_index=seq_index)
+            is_training_successful = train_and_log_autoencoder(autoencoder, train, validation)
+            if not is_training_successful:
+                flag = False
+                break
+            beta += 0.1
+        if flag and run_index is None:
+            constants.increase_index()
+
     return flag
 
 if __name__ == '__main__':
@@ -173,4 +191,4 @@ if __name__ == '__main__':
         tf.reset_default_graph()
         for i in range(5):
             go_mnist(architecture=constants.FC if args.architecture == 'FC' else constants.CONV,
-                index=i)
+                run_index=i)

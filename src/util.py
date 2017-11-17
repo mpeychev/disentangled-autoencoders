@@ -24,7 +24,9 @@ def get_parent_dir():
 
 def get_logs_dir():
     """Returns the root directory of the tensorboard log files."""
-    return os.path.join(get_parent_dir(), 'logs')
+    logs_dir = os.path.join(get_parent_dir(), 'logs')
+    prepare_dir(logs_dir, hard=False)
+    return logs_dir
 
 def get_results_dir():
     """Returns the directory for the results file."""
@@ -53,6 +55,11 @@ def prepare_dir(path_to_folder, hard=True):
         shutil.rmtree(path_to_folder)
     if not os.path.exists(path_to_folder):
         os.makedirs(path_to_folder)
+
+def write_list_to_file(li, file_name):
+    with open(file_name, 'w') as f:
+        for item in li:
+            print >> f, item
 
 def get_autoencoder_data(index=None, get_unique=True):
     """Loads the autoencoder clean data.
