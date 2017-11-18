@@ -147,9 +147,13 @@ def go_mnist(architecture, run_index=None):
             training_set_indices += random.sample(class_indices[digit],
                 (class_counts[digit] * labels_percentage) / 100)
         train = train_all[training_set_indices]
+	training_set_indices_file_name = str(run_index) + '-' + str(labels_percentage) + \
+	    '-training-indices'
+	if architecture == constants.CONV:
+	    training_set_indices_file_name += '-conv'
+	training_set_indices_file_name += '.txt'
         util.write_list_to_file(training_set_indices,
-            os.path.join(util.get_logs_dir(),
-                str(run_index) + '-' + str(labels_percentage) + '-training-indices.txt'))
+            os.path.join(util.get_logs_dir(), training_set_indices_file_name))
         flag = True
         beta = 0.0
         while beta - 4.0 < 1e-3:
@@ -189,6 +193,6 @@ if __name__ == '__main__':
                 architecture=constants.FC if args.architecture == 'FC' else constants.CONV)
     else:
         tf.reset_default_graph()
-        for i in range(5):
+        for i in range(1):
             go_mnist(architecture=constants.FC if args.architecture == 'FC' else constants.CONV,
                 run_index=i)
