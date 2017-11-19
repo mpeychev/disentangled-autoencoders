@@ -22,20 +22,17 @@ CLASSIFIER_POSSIBLE_CLASSES_COUNT = 10 # 10 digits to classify
 
 mnist = input_data.read_data_sets(os.path.join(os.path.expanduser('~'), 'MNIST_data'), one_hot=True)
 
-LIMIT = 55000
-
 logger.info('Start fetching.')
-train, test, validation = mnist.train.images, mnist.test.images, mnist.validation.images
-train_labels, test_labels, validation_labels = mnist.train.labels, mnist.test.labels, \
+train_all, test, validation = mnist.train.images, mnist.test.images, mnist.validation.images
+train_labels_all, test_labels, validation_labels = mnist.train.labels, mnist.test.labels, \
     mnist.validation.labels
-train_labels_digits = np.array([np.argmax(line) for line in train_labels[:LIMIT]])
 test_labels_digits = np.array([np.argmax(line) for line in test_labels])
 logger.info('Fetching completed.')
 
-def train_classifier(autoencoder, seq_index):
+def train_classifier(autoencoder, seq_index, train, train_labels_digits):
     beta = autoencoder.get_beta()
     logger.info('Beta = {0} | Start training'.format(beta))
-    X = autoencoder.get_code(train[:LIMIT], ignore_noise=True)
+    X = autoencoder.get_code(train, ignore_noise=True)
     classifier = SVC(kernel='rbf')
     classifier.fit(X, train_labels_digits)
     logger.info('Beta = {0} | Training completed'.format(beta))
@@ -55,24 +52,38 @@ def train_classifier(autoencoder, seq_index):
             beta, autoencoder.calc_reconstruction_accuracy(test)))
     autoencoder.close_session()
 
-def go(architecture, index):
+def go(architecture, run_index, labels_percentage, train, train_labels_digits):
     beta = 0.0
     while beta - 4.0 < 1e-3:
-        seq_index = str(index) + '-' + str(beta) + '-mnist'
+        seq_index = str(run_index) + '-' + str(labels_percentage) + '-' + str(beta) + '-mnist'
         if architecture == constants.CONV:
             seq_index += '-conv'
         autoencoder = get_autoencoder.mnist(architecture, beta, False, seq_index)
         autoencoder.restore_model()
-        train_classifier(autoencoder, seq_index)
+        train_classifier(autoencoder, seq_index, train, train_labels_digits)
         beta += 0.1
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('--arch', dest='architecture', required=True, choices=['SHAPES', 'MNIST'],
+    parser.add_argument('--arch', dest='architecture', required=True, choices=['FC', 'CONV'],
         help='Autoencoder architecture to test.')
     parser.add_argument('--runs', dest='runs', type=int, required=False, default=1,
         help='Number of experiment runs.')
     args = parser.parse_args()
 
-    for index in range(5):
-        go(constants.FC if args.architecture == 'FC' else constants.CONV, index)
+    for labels_percentage in range(20, 101, 20):
+        for run_index in range(args.runs):
+            training_set_indices_file_name = str(run_index) + '-' + str(labels_percentage) + \
+                '-training-indices'
+            if args.architecture == constants.CONV:
+                training_set_indices_file_name += '-conv'
+            training_set_indices_file_name += '.txt'
+            training_set_indices = util.read_list_from_file(
+                os.path.join(util.get_logs_dir(), training_set_indices_file_name))
+
+            train = train_all[training_set_indices]
+            train_labels = train_labels_all[training_set_indices]
+            train_labels_digits = np.array([np.argmax(line) for line in train_labels])
+
+            go(constants.FC if args.architecture == 'FC' else constants.CONV, run_index,
+                labels_percentage, train, train_labels_digits)

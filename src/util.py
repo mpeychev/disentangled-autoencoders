@@ -1,12 +1,15 @@
-from PIL import Image
-import os
-import sys
-import json
 import getpass
+import json
 import logging
+import os
+import re
 import shutil
+import sys
+
 import numpy as np
+from PIL import Image
 import tensorflow as tf
+
 import constants
 
 logger = logging.getLogger(__name__)
@@ -30,7 +33,9 @@ def get_logs_dir():
 
 def get_results_dir():
     """Returns the directory for the results file."""
-    return os.path.join(get_parent_dir(), 'results')
+    results_dir = os.path.join(get_parent_dir(), 'results')
+    prepare_dir(results_dir, hard=False)
+    return results_dir
 
 def get_data_dir():
     """Returns the diretory of the data files."""
@@ -60,6 +65,13 @@ def write_list_to_file(li, file_name):
     with open(file_name, 'w') as f:
         for item in li:
             print >> f, item
+
+def read_list_from_file(file_name):
+    li = []
+    with open(file_name, 'r') as f:
+        for line in f:
+            li.append(int(line.split()[0]))
+    return li
 
 def get_autoencoder_data(index=None, get_unique=True):
     """Loads the autoencoder clean data.

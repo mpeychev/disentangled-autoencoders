@@ -149,10 +149,10 @@ def go_mnist(architecture, run_index=None):
             training_set_indices += random.sample(class_indices[digit],
                 (class_counts[digit] * labels_percentage) / 100)
         train = train_all[training_set_indices]
-	training_set_indices_file_name = str(run_index) + '-' + str(labels_percentage) + \
-	    '-training-indices'
-	if architecture == constants.CONV:
-	    training_set_indices_file_name += '-conv'
+        training_set_indices_file_name = str(run_index) + '-' + str(labels_percentage) + \
+            '-training-indices'
+        if architecture == constants.CONV:
+            training_set_indices_file_name += '-conv'
 	training_set_indices_file_name += '.txt'
         util.write_list_to_file(training_set_indices,
             os.path.join(util.get_logs_dir(), training_set_indices_file_name))
