@@ -1,16 +1,15 @@
+import argparse
+import logging
 import os
 import sys
-import logging
-import util
+
+import numpy as np
+from sklearn.svm import SVC
+from tensorflow.examples.tutorials.mnist import input_data
+
 import constants
 import get_autoencoder
-from tensorflow.examples.tutorials.mnist import input_data
-from linear_classifier import LinearClassifier
-import numpy as np
-import argparse
-from sklearn.svm import SVC
-import helper
-import draw_util
+import util
 
 logger = logging.getLogger(__name__)
 output_handler = logging.StreamHandler(sys.stderr)
@@ -20,9 +19,8 @@ logger.addHandler(output_handler)
 logger.setLevel(logging.INFO)
 
 CLASSIFIER_POSSIBLE_CLASSES_COUNT = 10 # 10 digits to classify
-PATIENCE = 10
 
-mnist = input_data.read_data_sets('../../MNIST_data', one_hot=True)
+mnist = input_data.read_data_sets(os.path.join(os.path.expanduser('~'), 'MNIST_data'), one_hot=True)
 
 LIMIT = 55000
 
@@ -70,8 +68,10 @@ def go(architecture, index):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('--arch', dest='architecture', required=True,
-        help='Autoencoder architecture to test: FC or CONV.')
+    parser.add_argument('--arch', dest='architecture', required=True, choices=['SHAPES', 'MNIST'],
+        help='Autoencoder architecture to test.')
+    parser.add_argument('--runs', dest='runs', type=int, required=False, default=1,
+        help='Number of experiment runs.')
     args = parser.parse_args()
 
     for index in range(5):

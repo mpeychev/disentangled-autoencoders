@@ -1,16 +1,18 @@
-import os
-import sys
+import argparse
 import logging
+import os
+import random
+import sys
+
 import numpy as np
 import tensorflow as tf
-import util
+from tensorflow.examples.tutorials.mnist import input_data
+
 import constants
 import generate_data
-import helper
-import argparse
 import get_autoencoder
-import random
-from tensorflow.examples.tutorials.mnist import input_data
+import helper
+import util
 
 # Early stopping constant.
 PATIENCE = 5
