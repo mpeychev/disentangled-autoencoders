@@ -178,21 +178,23 @@ def go_mnist(architecture, run_index=None):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('--dataset', dest='dataset', required=True,
-        help='Run experiments on ShapesSet or MNIST. Possible argument values: SHAPES ; MNIST')
-    parser.add_argument('--arch', dest='architecture', required=True,
-        help='Autoencoder architecture to test: FC or CONV.')
+    parser.add_argument('--dataset', dest='dataset', required=True, choices=['SHAPES', 'MNIST'],
+        help='Run experiments on ShapesSet or MNIST.')
+    parser.add_argument('--arch', dest='architecture', required=True, choices=['FC', 'CONV'],
+        help='Autoencoder architecture to test.')
     parser.add_argument('--denoising', action='store_true',
         help='Denoising instead of simple.')
+    parser.add_argument('--runs', dest='runs', type=int, required=False, default=1,
+        help='Number of experiment runs.')
     args = parser.parse_args()
 
     if args.dataset == 'SHAPES':
         tf.reset_default_graph()
-        for i in range(5):
+        for i in range(args.runs):
             go_shapes(denoising=args.denoising,
                 architecture=constants.FC if args.architecture == 'FC' else constants.CONV)
     else:
         tf.reset_default_graph()
-        for i in range(1):
+        for i in range(args.runs):
             go_mnist(architecture=constants.FC if args.architecture == 'FC' else constants.CONV,
                 run_index=i)
