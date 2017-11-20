@@ -86,7 +86,7 @@ def summarise_results(architecture, runs, labels_percentage):
         while beta - 4.0 < 1e-3:
             result_file_name = 'results-' + str(run_index) + '-' + str(labels_percentage) + '-' + \
                 str(beta) + '-mnist'
-            if architecture == constants.CONV:
+            if architecture == 'CONV':
                 result_file_name += '-conv'
             result_file_name += '.txt'
             with open(os.path.join(util.get_results_dir(), result_file_name), 'r') as f:
