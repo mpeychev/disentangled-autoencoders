@@ -1,6 +1,7 @@
 import argparse
 import logging
 import os
+import math
 import sys
 
 import numpy as np
@@ -80,8 +81,9 @@ def gather_results(architecture, run_index, labels_percentage):
         train, train_labels_digits)
 
 def summarise_results(architecture, runs, labels_percentage):
-    accuracy = []
+    accuracy_all = []
     for run_index in range(runs):
+        accuracy = []
         beta = 0.0
         while beta - 4.0 < 1e-3:
             result_file_name = 'results-' + str(run_index) + '-' + str(labels_percentage) + '-' + \
@@ -93,7 +95,25 @@ def summarise_results(architecture, runs, labels_percentage):
                 first_line = f.readline()
                 accuracy.append(float(first_line.rstrip().split()[-1]))
             beta += 0.1
-    print accuracy
+        print accuracy
+        accuracy_all.append(accuracy)
+    L = len(accuracy_all[0])
+    mean = [0.0] * L
+    stddev = [0.0] * L
+    for j in range(L):
+        # compute mean
+        s = 0.0
+        for i in range(runs):
+            s += accuracy_all[i][j]
+        mean[j] = s / float(runs)
+        # compute standard deviation
+        s = 0.0
+        for i in range(runs):
+            s += (accuracy_all[i][j] - mean[j]) ** 2
+        if runs > 1:
+            stddev[j] = math.sqrt(s / float(runs - 1))
+    print('mean: ' + mean)
+    print('stddev: ' + stddev)
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
