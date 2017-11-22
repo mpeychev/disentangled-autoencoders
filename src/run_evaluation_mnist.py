@@ -112,8 +112,8 @@ def summarise_results(architecture, runs, labels_percentage):
             s += (accuracy_all[i][j] - mean[j]) ** 2
         if runs > 1:
             stddev[j] = math.sqrt(s / float(runs - 1))
-    print('mean: ' + mean)
-    print('stddev: ' + stddev)
+    print('mean: {0}'.format(mean))
+    print('stddev: {0}'.format(stddev))
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
